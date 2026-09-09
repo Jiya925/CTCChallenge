@@ -30,6 +30,7 @@ export class ApiError extends Error {
   }
 }
 
+//function to handle all errors
 export function handleError(err: unknown): NextResponse {
   if(err instanceof ApiError) {
     //if ApiError, return its status and message
@@ -39,3 +40,4 @@ export function handleError(err: unknown): NextResponse {
   console.error('Unhandled API error:', err);
   return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
 }
+
