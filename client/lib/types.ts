@@ -95,3 +95,11 @@ export function toVisit(row: Record<string, unknown>): Visit {
     createdAt: isoTimestamp(row.created_at),
   };
 }
+
+export function parseId(raw: string): number | null {
+  const id = Number(raw);
+  if (!Number.isInteger(id) || id <= 0) {
+    return null;
+  }
+  return id;
+}

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { pool } from '@/db/pool';
-import { handleError } from '@/lib/errors';
-import { toRestaurant } from '@/lib/types';
+import { handleError, ApiError } from '@/lib/errors';
+import { toRestaurant, parseId } from '@/lib/types';
 
 type Params = { params: { id: string } };
 
@@ -11,13 +11,18 @@ type Params = { params: { id: string } };
  */
 export async function GET(_req: Request, { params }: Params) {
   try {
+    const id = parseId(params.id);
+    if (id === null) {
+      throw new ApiError(404, 'Restaurant not found');
+    }
+
     const { rows } = await pool.query(
       'SELECT * FROM restaurants WHERE id = $1',
       [params.id]
     );
 
     if (rows.length === 0) {
-      return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 });
+      throw new ApiError(404, 'Restaurant not found');
     }
 
     return NextResponse.json(toRestaurant(rows[0]));
@@ -35,8 +40,21 @@ export async function GET(_req: Request, { params }: Params) {
  */
 export async function PUT(req: Request, { params }: Params) {
   try {
+    const id = parseId(params.id);
+    if (id === null) {
+      throw new ApiError(404, 'Restaurant not found');
+    }
+    
     //get the new id, read from params and update row
     const restaurant = await req.json();
+
+    if (typeof restaurant.name !== 'string' || restaurant.name.trim() === '') {
+      throw new ApiError(400, 'name is required and must be a non-empty string');
+    }
+    if ((typeof restaurant.rating === 'number' && (restaurant.rating < 0 || restaurant.rating > 5)) || (restaurant.rating !== undefined && typeof restaurant.rating !== 'number')) {
+      throw new ApiError(400, 'rating must be a number between 0 and 5');
+    }
+
     const { rows } = await pool.query(
       'UPDATE restaurants SET name = $1, cuisine = $2, address = $3, rating = $4 WHERE id = $5 RETURNING *',
       [restaurant.name, restaurant.cuisine, restaurant.address, restaurant.rating, params.id]
@@ -44,7 +62,7 @@ export async function PUT(req: Request, { params }: Params) {
 
     //if no row matches, return 404
     if(rows.length === 0) {
-      return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 });
+      throw new ApiError(404, 'Restaurant not found');
     }
 
     //return the updated restaurant with a 200 status
@@ -67,6 +85,11 @@ export async function PUT(req: Request, { params }: Params) {
  */
 export async function DELETE(req: Request, {params}: Params) {
   try {
+    const id = parseId(params.id);
+    if (id === null) {
+      throw new ApiError(404, 'Restaurant not found');
+    }
+
     //find the restaurant by id and delete it
     const { rows } = await pool.query(
       'DELETE FROM restaurants WHERE id = $1 RETURNING *',
@@ -75,7 +98,7 @@ export async function DELETE(req: Request, {params}: Params) {
 
     //if no row matches, return 404
     if(rows.length === 0) {
-      return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 });
+      throw new ApiError(404, 'Restaurant not found');
     }
 
     //return the null restaurant with a 204 status
