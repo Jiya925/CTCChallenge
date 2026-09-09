@@ -31,14 +31,17 @@ export async function GET() {
  * `rating` happily accepts 6. Decide what valid means for each field and reject
  * bad bodies with a 400 rather than letting them reach the database.
  */
-export async function POST(_req: Request) {
+export async function POST(req: Request) {
   try {
     //read restaurant fields from request
-
+    const restaurant = await req.json();
     //insert a row
-    
+    const { rows } = await pool.query(
+      'INSERT INTO restaurants (name, cuisine, address, rating) VALUES ($1, $2, $3, $4) RETURNING *',
+      [restaurant.name, restaurant.cuisine, restaurant.address, restaurant.rating]
+    );
     //return the created restaurant with a 201 status
-    return NextResponse.json({ error: 'Not implemented' }, { status: 201 });
+    return NextResponse.json(toRestaurant(rows[0]) , { status: 201 });
   } catch (err) {
     return handleError(err);
   }
