@@ -36,6 +36,15 @@ export function handleError(err: unknown): NextResponse {
     //if ApiError, return its status and message
     return NextResponse.json({ error: err.message }, { status: err.status });
   }
+
+  //foreign key violation (restaurantId doesn't exist)
+  if (err && typeof err === 'object' && 'code' in err && err.code === '23503') {
+    return NextResponse.json(
+      { error: 'Referenced restaurant does not exist' },
+      { status: 400 }
+    );
+  }
+
   //otherwise, return 500 and don't leak internal error details
   console.error('Unhandled API error:', err);
   return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

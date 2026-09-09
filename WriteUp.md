@@ -13,6 +13,7 @@
 > What made you pick it over everything else you could have built? This is the
 > question we care most about - the _why_ matters more than the _what_.
 
+
 ## 2. What did you decide, and what did you rule out?
 
 > Route shapes, data model, where the logic lives, what you deliberately didn't
@@ -76,6 +77,21 @@ curl -i -X POST http://localhost:3000/api/restaurants \
 **Part B** - the equivalent cases for what you built:
 
 ```bash
+curl -i http://localhost:3000/api/visits # 200 + array sorted by date
+curl -i -X POST http://localhost:3000/api/visits \
+  -H 'Content-Type: application/json' \
+  -d '{"restaurantId":99999,"date":"2026-05-01","amountSpent":25.50}' # 400
+curl -i -X POST http://localhost:3000/api/visits \
+  -H 'Content-Type: application/json' \
+  -d '{"date":"2026-05-01","amountSpent":25.50}' # 400
+curl -i -X POST http://localhost:3000/api/visits \
+  -H 'Content-Type: application/json' \
+  -d '{"restaurantId":1,"date":"not-a-date","amountSpent":25.50}' # 400
+curl -i -X POST http://localhost:3000/api/visits \
+  -H 'Content-Type: application/json' \
+  -d '{"restaurantId":1,"date":"2026-05-01","amountSpent":-10}' # 400
+curl -i -X DELETE http://localhost:3000/api/visits/4 # 204 (first delete worked)
+curl -i -X DELETE http://localhost:3000/api/visits/4 # 404 (second delete of now nonexistent visit)
 
 ```
 

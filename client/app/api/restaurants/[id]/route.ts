@@ -18,7 +18,7 @@ export async function GET(_req: Request, { params }: Params) {
 
     const { rows } = await pool.query(
       'SELECT * FROM restaurants WHERE id = $1',
-      [params.id]
+      [id]
     );
 
     if (rows.length === 0) {
@@ -83,7 +83,7 @@ export async function PUT(req: Request, { params }: Params) {
  * restaurant's visits. Go read it. If you disagree with it, say so in your
  * write-up.
  */
-export async function DELETE(req: Request, {params}: Params) {
+export async function DELETE(_req: Request, {params}: Params) {
   try {
     const id = parseId(params.id);
     if (id === null) {
@@ -93,7 +93,7 @@ export async function DELETE(req: Request, {params}: Params) {
     //find the restaurant by id and delete it
     const { rows } = await pool.query(
       'DELETE FROM restaurants WHERE id = $1 RETURNING *',
-      [params.id]
+      [id]
     );
 
     //if no row matches, return 404
